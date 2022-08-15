@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+
+  controller:
+    container_name: controller
+    image: ngrinder/controller:3.5.5
+    environment:
+      - TZ=Asia/Seoul
+    ports:
+      - 8888:80 # admin/admin
+      - 16001:16001
+      - 12000-12009:12000-12009
+    volumes:
+      - /tmp/ngrinder-controller:/opt/ngrinder-controller
+
+  agent-1:
+    container_name: agent-1
+    image: ngrinder/agent:3.5.5
+    environment:
+      - TZ=Asia/Seoul
+    depends_on:
+      - controller
+
+  agent-2:
+    container_name: agent-2
+    image: ngrinder/agent:3.5.5
+    environment:
+      - TZ=Asia/Seoul
+    depends_on:
+      - controller
