@@ -1,5 +1,7 @@
 version: '3.8'
 
+# target: http://${PRIVATE_IP_ADDR}/api/path
+# target: http://192.168.0.148:8080/api/path
 services:
 
   controller:
@@ -12,13 +14,28 @@ services:
       - 16001:16001
       - 12000-12009:12000-12009
     volumes:
-      - /tmp/ngrinder-controller:/opt/ngrinder-controller
+      - $HOME/ngrinder-controller:/opt/ngrinder-controller
+    ulimits:
+      # library initialization failed - unable to allocate file descriptor table - out of memory
+      nofile:
+        soft: 65536
+        hard: 65536
 
   agent-1:
     container_name: agent-1
     image: ngrinder/agent:3.5.5
     environment:
       - TZ=Asia/Seoul
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nproc:
+        soft: 1024000
+        hard: 1024000
+      nofile:
+        soft: 1024000
+        hard: 1024000
     depends_on:
       - controller
 
@@ -27,5 +44,15 @@ services:
     image: ngrinder/agent:3.5.5
     environment:
       - TZ=Asia/Seoul
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nproc:
+        soft: 1024000
+        hard: 1024000
+      nofile:
+        soft: 1024000
+        hard: 1024000
     depends_on:
       - controller
