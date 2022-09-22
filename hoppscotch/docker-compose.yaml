@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  hoppscotch:
+    container_name: hoppscotch
+    image: hoppscotch/hoppscotch:v2.2.1
+    restart: always
+    ports:
+      - 23000:3000
+    volumes:
+      - ${HOME}/hoppscotch:/app/data
