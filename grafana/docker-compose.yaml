@@ -1,0 +1,23 @@
+version: '3.8'
+
+volumes:
+  grafana-data:
+    driver: local
+    # driver_opts:
+    #   type: nfs
+    name: grafana-data
+    labels:
+      owner: markruler
+      purpose: personal-computer
+
+services:
+  grafana:
+    image: grafana/grafana:9.4.3-ubuntu
+    container_name: grafana
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=changeme

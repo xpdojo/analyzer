@@ -1,8 +1,12 @@
 version: '3.8'
 
 volumes:
-  prometheus_data: {}
-  grafana_data: {}
+  prometheus-data:
+    driver: local
+    name: prometheus-data
+    labels:
+      owner: markruler
+      purpose: personal-computer
 
 services:
   # System Metritc 정보를 Exporter로부터 수집해서 시계열 데이터베이스에 저장
@@ -16,7 +20,7 @@ services:
       - 9090:9090
     volumes:
       - ./prometheus/:/etc/prometheus/
-      - prometheus_data:/prometheus
+      - prometheus-data:/prometheus
     command:
       # https://manpages.debian.org/unstable/prometheus/prometheus.1.en.html
       - '--config.file=/etc/prometheus/prometheus.yaml'
@@ -74,15 +78,3 @@ services:
       - '--config.file=/etc/blackbox-exporter/config.yaml'
     volumes:
       - ./blackbox-exporter/config.yaml:/etc/blackbox-exporter/config.yaml
-
-  # Grafana는 지정한 Data Source에서 (ex: Prometheus) 수집한 데이터를 시각화하는 도구
-  grafana:
-    image: grafana/grafana:9.4.3-ubuntu
-    container_name: grafana
-    restart: always
-    ports:
-      - 3000:3000
-    volumes:
-      - grafana_data:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=changeme
