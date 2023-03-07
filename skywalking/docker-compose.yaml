@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+
+  # https://skywalking.apache.org/docs/main/v9.3.0/en/setup/backend/backend-docker/
+  oap:
+    container_name: skywalking-oap
+    image: apache/skywalking-oap-server:9.3.0
+    environment:
+      - TZ=Asia/Seoul
+    restart: always
+    ports:
+      - 9412:9412 # zipkin
+      - 12800:12800 # oap
+  
+  # Native: https://skywalking.apache.org/docs/main/next/en/setup/backend/ui-setup/
+  # Grafana: https://skywalking.apache.org/docs/main/next/en/setup/backend/ui-grafana/
+  ui:
+    container_name: skywalking-ui
+    image: apache/skywalking-ui:8.7.0
+    environment:
+      - TZ=Asia/Seoul
+      - SW_OAP_ADDRESS=http://skywalking-oap:12800
+    restart: always
+    ports:
+      - 18080:8080 # ui
