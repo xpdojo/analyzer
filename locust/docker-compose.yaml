@@ -12,7 +12,7 @@ services:
       - -f=/mnt/locust/locustfile.py
       # - --headless # run locust without web interface
       - --master
-      - -H=http://www.example.com:8080
+      - --host=https://reqres.in
       - --users=100
       - --spawn-rate=10
       - --run-time=1m

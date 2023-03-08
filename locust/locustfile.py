@@ -5,14 +5,17 @@ class Load(HttpUser):
     wait_time = between(1, 2)
 
     def on_start(self):
-        self.client.post("/login", json={"username": "foo", "password": "bar"})
+        self.client.post("/api/login", json={
+            "email": "eve.holt@reqres.in",
+            "password": "cityslicka"
+        })
 
     @task
-    def hello_world(self):
-        self.client.get("/hello")
-        self.client.get("/world")
+    def simple_request(self):
+        self.client.get("/errors")
+        self.client.get("/api/users/2")
 
     @task(3)
-    def view_item(self):
-        for item_id in range(10):
-            self.client.get(f"/item?id={item_id}", name="/item")
+    def list_users(self):
+        for item_id in range(2):
+            self.client.get(f"/api/users?page={item_id}", name="List Users")
