@@ -1,0 +1,11 @@
+apiVersion: 1
+
+datasources:
+  - name: myinfluxdb
+    type: influxdb
+    access: proxy
+    orgId: 1
+    url: http://influxdb:8086
+    database: k6
+    editable: true # database가 없으면 수동으로 수정해야 함
+    isDefault: true
