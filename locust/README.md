@@ -3,6 +3,7 @@
 ## 스크립트 편집
 
 - [Writing a locustfile](https://docs.locust.io/en/stable/writing-a-locustfile.html) - locust.io
+- Examples: [locustio/locust](https://github.com/locustio/locust/tree/master/examples)
 
 ```sh
 python3 -m venv venv

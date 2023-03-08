@@ -12,10 +12,16 @@ class Load(HttpUser):
     wait_time = between(1, 2)
 
     def on_start(self):
-        self.client.post("/api/login", json={
+        response = self.client.post("/api/login", json={
             "email": "eve.holt@reqres.in",
             "password": "cityslicka"
         })
+        # print(response.json())
+        self.token = response.json()['token']
+        self.client.headers = {**self.auth_headers(), **self.client.headers}
+
+    def auth_headers(self):
+        return {"Authorization": "Bearer " + self.token}
 
     @task
     def simple_request(self):

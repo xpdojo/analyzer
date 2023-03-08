@@ -10,14 +10,16 @@ services:
       - ./:/mnt/locust
     command:
       - -f=/mnt/locust/locustfile.py
-      # - --headless # run locust without web interface
+      #- --headless # run locust without web interface
       - --master
       - --host=https://reqres.in
+      # Ramping to 100 users at a rate of 5.00 per second
       - --users=100
-      - --spawn-rate=10
+      - --spawn-rate=5
       - --run-time=1m
 
-  # docker-compose up --scale worker=4
+  # sudo docker compose up --scale worker=4
+  # sudo docker compose -f docker-compose-prod.yaml up --scale worker=10
   worker:
     image: locustio/locust
     volumes:
