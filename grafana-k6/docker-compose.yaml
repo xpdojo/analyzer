@@ -27,8 +27,8 @@ services:
       - GF_AUTH_BASIC_ENABLED=false
     volumes:
       - ./grafana:/etc/grafana/provisioning/
-    depends_on:
-      - influxdb
+    # depends_on:
+    #   - influxdb
 
   k6:
     image: grafana/k6:latest
@@ -38,14 +38,14 @@ services:
       - "6565:6565"
     environment:
       - K6_OUT=influxdb=http://influxdb:8086/k6
-    command:
-      - run
-      - --vus
-      - "1"
-      - --duration
-      - "10s"
-      - /scripts/stages.js
+    # command:
+    #   - run
+    #   - --vus
+    #   - "1"
+    #   - --duration
+    #   - "10s"
+    #   - /scripts/stages.js
     volumes:
       - ./samples:/scripts
-    depends_on:
-      - influxdb
+    # depends_on:
+    #   - influxdb
