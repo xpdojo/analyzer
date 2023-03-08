@@ -20,7 +20,8 @@ python -m locust -f locustfile.py --headless --host=https://reqres.in -u 10 -r 2
 ```
 
 ```sh
-source venv/bin/deactivate
+# deactivate venv
+deactivate
 ```
 
 ## Docker compose를 사용해서 실행
