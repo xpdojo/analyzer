@@ -67,32 +67,39 @@ def main(
     )
     # print(es.info())
 
+    timestamp = '@timestamp'
+    sql_exec_start = 'sql_exec_start'
+    sql_fulltext = 'sql_fulltext'
+    prev_sql_fulltext = 'prev_sql_fulltext'
+
     # Transform
     docs = []
     for src in oracle_result:
         # mutate
-        lower_src = lower_dict_keys(src)
+        source = lower_dict_keys(src)
 
         # date format
-        lower_src['sql_exec_start'] = with_timezone(lower_src['sql_exec_start'])
-        lower_src['@timestamp'] = datetime.now(tz=KST)
+        source[sql_exec_start] = with_timezone(source[sql_exec_start])
+        source[timestamp] = datetime.now(tz=KST)
 
-        sql_fulltext = 'sql_fulltext'
-        prev_sql_fulltext = 'prev_sql_fulltext'
         # print(type(lower_src[sql_fulltext])) # <class 'oracledb.LOB'>
-        lower_src[sql_fulltext] = ''.join(lower_src[sql_fulltext].read())
-        lower_src[prev_sql_fulltext] = ''.join(lower_src[prev_sql_fulltext].read())
+        if source[sql_fulltext] is not None:
+            source[sql_fulltext] = ''.join(source[sql_fulltext].read())
+        if source[prev_sql_fulltext] is not None:
+            source[prev_sql_fulltext] = ''.join(source[prev_sql_fulltext].read())
 
-        # remove_field
-        remove_fields = [
+        for remove_field in [
             # sql_fulltext,
             # prev_sql_fulltext,
-        ]
-        for field in remove_fields:
-            del lower_src[field]
+        ]:
+            if remove_field in source:
+                del source[remove_field]
 
-        docs.append({"index": {"_index": index_name, "_id": lower_src['sid']}})
-        docs.append(lower_src)
+        # identifier
+        _id = f"{source['sid']}-{source['serial#']}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+        docs.append({"index": {"_index": index_name, "_id": _id}})
+        docs.append(source)
 
     # Bulk Index
     batch_size = 100
