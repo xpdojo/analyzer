@@ -39,6 +39,7 @@ def with_timezone(date_str: datetime) -> datetime | None:
 
 def main(
         index_name: str,
+        batch_size: int = 1_000,
 ):
     # Oracle 접속
     connection = oracledb.connect(
@@ -102,7 +103,6 @@ def main(
         docs.append(source)
 
     # Bulk Index
-    batch_size = 100
     for result in fetch(docs, batch_size):
         bulk = es.bulk(index=index_name, body=result)
         print(f"batch_docs {len(bulk['items'])}")
