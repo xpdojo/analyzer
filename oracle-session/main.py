@@ -39,7 +39,7 @@ def with_timezone(date_str: datetime) -> datetime | None:
 
 def main(
         index_name: str,
-        batch_size: int = 1_000,
+        batch_size: int,
 ):
     # Oracle 접속
     connection = oracledb.connect(
@@ -97,7 +97,11 @@ def main(
                 del source[remove_field]
 
         # identifier
-        _id = f"{source['sid']}-{source['serial#']}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        # https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SESSION.html
+        # https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SQL_MONITOR.html
+        prev_exec_start: datetime = source['prev_exec_start']
+        prev_exec_start_epoch: float = datetime.timestamp(prev_exec_start)
+        _id = f"{source['prev_exec_id']}-{source['prev_sql_id']}-{int(prev_exec_start_epoch)}"
 
         docs.append({"index": {"_index": index_name, "_id": _id}})
         docs.append(source)
@@ -118,11 +122,14 @@ if __name__ == '__main__':
                         default=5, type=int,
                         help='Specify  update  interval. (default: 5 seconds)')
     parser.add_argument('-i', '--index-name', metavar='name', required=False,
-                        default='oracle-session-2023.03.18', type=str,
+                        default='oracle-session-2023.03.21v2', type=str,
                         help='Elasticsearch index name.')
 
     args = parser.parse_args()
 
     while True:
-        main(index_name=args.index_name)
+        main(
+            index_name=args.index_name,
+            batch_size=1_000,
+         )
         time.sleep(args.interval)
