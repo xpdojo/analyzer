@@ -9,7 +9,7 @@ class Load(HttpUser):
     """
 
     # 각 사용자가 작업을 완료한 후 1~3초 사이의 랜덤한 시간 동안 대기합니다. 
-    wait_time = between(1, 2)
+    wait_time = between(1, 3)
 
     def on_start(self):
         response = self.client.post("/api/login", json={
