@@ -1,4 +1,6 @@
+import logging
 import os
+import sys
 import time
 from datetime import datetime, timezone, timedelta
 from typing import Collection, Generator, Any
@@ -9,6 +11,43 @@ from elasticsearch.client import Elasticsearch
 from sql import oracle_session
 
 KST = timezone(timedelta(hours=9))
+
+
+def main(
+        index_name: str,
+        batch_size: int,
+):
+    date = datetime.now(tz=KST).strftime('%Y%m%d')
+    # Logging
+    logging_format = '%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s] - %(message)s'
+    logging.basicConfig(
+        level=logging.INFO,
+        filename=f'logs/{index_name}.{date}.log',
+        filemode='a',  # append
+        format=logging_format,
+    )
+    # root logger
+    root_logger: logging.Logger = logging.getLogger()
+
+    # console output
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(logging.Formatter(logging_format))
+    root_logger.addHandler(stream_handler)
+
+    # elasticsearch logger
+    es_logger: logging.Logger = logging.getLogger('elasticsearch')
+    es_logger.setLevel(logging.WARN)
+
+    wait_seconds = 5
+
+    while True:
+        try:
+            etl(index_name, batch_size)
+            logging.info(f"The next query will be executed in {wait_seconds} seconds")
+        except Exception as ex:
+            logging.info(ex)
+            logging.info(f"Retry in {wait_seconds} seconds")
+        time.sleep(wait_seconds)
 
 
 def lower_dict_keys(d) -> dict:
@@ -37,10 +76,7 @@ def with_timezone(date_str: datetime) -> datetime | None:
     return date_str.astimezone(KST)
 
 
-def main(
-        index_name: str,
-        batch_size: int,
-):
+def etl(index_name: str, batch_size: int):
     # Oracle 접속
     connection = oracledb.connect(
         user=os.getenv('ORACLE_DB_USER', default='sysadmin'),
@@ -66,7 +102,7 @@ def main(
             os.getenv(key='ELASTIC_PASSWORD', default=''),
         )
     )
-    # print(es.info())
+    logging.debug(es.info())
 
     timestamp = '@timestamp'
     sql_exec_start = 'sql_exec_start'
@@ -109,7 +145,7 @@ def main(
     # Bulk Index
     for result in fetch(docs, batch_size):
         bulk = es.bulk(index=index_name, body=result)
-        print(f"batch_docs {len(bulk['items'])}")
+        logging.info(f"index sessions {len(bulk['items'])}")
 
 
 if __name__ == '__main__':
@@ -127,9 +163,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    while True:
-        main(
-            index_name=args.index_name,
-            batch_size=1_000,
-         )
-        time.sleep(args.interval)
+    main(
+        index_name=args.index_name,
+        batch_size=1_000,
+    )

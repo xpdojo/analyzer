@@ -1,5 +1,5 @@
 .PHONY: all
-all: clean install run
+all: clean install oracle-session
 
 .PHONY: clean
 clean:
@@ -10,7 +10,7 @@ install:
 	python3 -m venv venv
 	venv/bin/pip install -Ur requirements.txt
 
-.PHONY: run
-run:
+.PHONY: oracle-session
+oracle-session:
 	@echo "Running main.py"
 	@venv/bin/python3 main.py
