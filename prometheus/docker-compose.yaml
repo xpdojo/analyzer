@@ -13,12 +13,12 @@ services:
   # PromQL을 통해 조회할 수 있는 기능 제공
   # 사용자가 정의한 임계값(Threshold)을 기준으로 경고를 발생시키는 기능 제공
   prometheus:
-    image: prom/prometheus:v2.42.0
     container_name: prometheus
+    image: prom/prometheus:v2.42.0
     restart: always
     ports:
       - 9090:9090
-    volumes:
+    volumes: # host:container
       - ./prometheus/:/etc/prometheus/
       - prometheus-data:/prometheus
     command:
@@ -33,6 +33,7 @@ services:
       - '--web.enable-lifecycle'
     depends_on:
       - node-exporter
+      - snmp-exporter
       - blackbox-exporter
   
   # Alert Manager는 Prometheus에서 생성한 경고를 처리하고 알림을 관리하는 도구
@@ -52,8 +53,8 @@ services:
 
   # Node의 메트릭 정보를 수집하는 Exporter
   node-exporter:
-    image: prom/node-exporter:v1.5.0
     container_name: node-exporter
+    image: prom/node-exporter:v1.5.0
     restart: always
     ports:
       - 9100:9100
@@ -71,6 +72,7 @@ services:
   # Blackbox Exporter는 서비스 및 애플리케이션의 상태를 모니터링하기 위한 Exporter
   # HTTP, HTTPS, DNS, TCP, ICMP 등의 프로토콜을 통해 서비스의 상태를 모니터링할 수 있다.
   blackbox-exporter:
+    container_name: blackbox-exporter
     image: prom/blackbox-exporter:v0.23.0
     ports:
       - "9115:9115"
@@ -78,3 +80,14 @@ services:
       - '--config.file=/etc/blackbox-exporter/config.yaml'
     volumes:
       - ./blackbox-exporter/config.yaml:/etc/blackbox-exporter/config.yaml
+
+  # https://github.com/prometheus/snmp_exporter
+  # https://hub.docker.com/r/prom/snmp-exporter
+  snmp-exporter:
+    container_name: snmp-exporter
+    image: prom/snmp-exporter:v0.24.1
+    restart: always
+    ports:
+      - 9116:9116
+    command:
+      - "--config.file=/etc/snmp_exporter/snmp.yml"

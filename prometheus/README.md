@@ -17,6 +17,7 @@ sudo docker compose up -d
 ## Exporters
 
 - Node Exporter
+- SNMP Exporter
 - Blackbox Exporter
 
 ## Grafana Dashboard
