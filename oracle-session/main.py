@@ -40,9 +40,19 @@ def main(
 
     wait_seconds = 5
 
+    # Elastic Cloud 접속
+    es = Elasticsearch(
+        cloud_id=os.getenv(key='ELASTIC_CLOUD_ID'),
+        http_auth=(
+            os.getenv(key='ELASTIC_USERNAME', default='elastic'),
+            os.getenv(key='ELASTIC_PASSWORD', default=''),
+        )
+    )
+    logging.info(es.info())
+
     while True:
         try:
-            etl(index_name, batch_size)
+            etl(es, index_name, batch_size)
             logging.info(f"The next query will be executed in {wait_seconds} seconds")
         except Exception as ex:
             logging.info(ex)
@@ -76,16 +86,23 @@ def with_timezone(date_str: datetime) -> datetime | None:
     return date_str.astimezone(KST)
 
 
-def etl(index_name: str, batch_size: int):
+def etl(
+        es: Elasticsearch,
+        index_name: str,
+        batch_size: int
+):
     # Oracle 접속
-    connection = oracledb.connect(
+    # connection 을 미리 얻어서 계속 사용하면
+    # 반복문의 sleep에 설정한 시간(wait_seconds)만큼
+    # 모니터링 도구에도 wait time으로 표시됨.
+    connection: oracledb.Connection = oracledb.connect(
         user=os.getenv('ORACLE_DB_USER', default='sysadmin'),
         password=os.getenv('ORACLE_DB_PASSWORD', default='sysadmin'),
         dsn=os.getenv('ORACLE_DB_DSN', default='localhost:1521/orcl')
     )
+    logging.info("oracle.dbms.version={0}".format(connection.version))
 
     query = oracle_session.query()
-
     oracle_result = []
     with connection.cursor() as cursor:
         cursor.execute(statement=query)
@@ -93,16 +110,6 @@ def etl(index_name: str, batch_size: int):
         cursor.rowfactory = lambda *args: dict(zip(columns, args))
         for row in cursor:
             oracle_result.append(row)
-
-    # Elastic Cloud 접속
-    es = Elasticsearch(
-        cloud_id=os.getenv(key='ELASTIC_CLOUD_ID'),
-        http_auth=(
-            os.getenv(key='ELASTIC_USERNAME', default='elastic'),
-            os.getenv(key='ELASTIC_PASSWORD', default=''),
-        )
-    )
-    logging.debug(es.info())
 
     timestamp = '@timestamp'
     sql_exec_start = 'sql_exec_start'
